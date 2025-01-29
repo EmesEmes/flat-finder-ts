@@ -1,4 +1,5 @@
 import { supabase } from "@/utils/supabaseClient";
+import { f } from "node_modules/react-router/dist/development/fog-of-war-ClXvjZ4E.d.mts";
 
 export class FlatsServices {
   constructor() {}
@@ -52,7 +53,7 @@ export class FlatsServices {
   }
 
   async getFlats() {
-    const { data: flats, error } = await supabase.from("flats").select();
+    const { data: flats, error } = await supabase.from("flats").select().order("created_at", { ascending: true });;
 
     if (error) {
       return { success: false, error: error.message };
@@ -149,5 +150,58 @@ export class FlatsServices {
     }
 
     return { success: true, flats: data };
+  }
+
+  async updateFlat(flatId: string, updatedFlat: any) {
+    const { data, error } = await supabase
+      .from("flats")
+      .update(updatedFlat)
+      .eq("id", flatId);
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    return { success: true, data };
+  }
+
+  async filterCity(city: string) {
+    const { data: flats, error } = await supabase
+      .from("flats")
+      .select("*")
+      .ilike("city", `%${city}%`);
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    return { success: true, flats };
+  }
+
+  async filterPrice() {
+    const { data: flats, error } = await supabase
+      .from("flats")
+      .select("*")
+      .order("rentprice", { ascending: false });
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    return { success: true, flats };
+  }
+
+  async filterByPrice(min: number, max: number) {
+    const { data: flats, error } = await supabase
+      .from("flats")
+      .select("*")
+      .gte("rentprice", min)
+      .lte("rentprice", max);
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    return { success: true, flats };
   }
 }
