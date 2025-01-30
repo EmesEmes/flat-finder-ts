@@ -1,17 +1,7 @@
 import { useEffect, useState } from "react";
 import { FlatsServices } from "@/services/flats/flatsServices";
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+
 import { useToast } from "@/hooks/use-toast";
-import { Link } from "react-router";
-import { Button } from "../ui/button";
 import { useUser } from "@/context/UserContext";
 import FlatTable from "../tableFlats/FlatTable";
 
@@ -81,58 +71,7 @@ const Home = () => {
   };
   return (
     <>
-    
-    {/* <Table className="container mx-auto">
-      <TableCaption>All Flats</TableCaption>
-      <TableHeader>
-        <TableRow>
-          <TableHead>View</TableHead>
-          <TableHead>City</TableHead>
-          <TableHead>Street Name</TableHead>
-          <TableHead>Street Number</TableHead>
-          <TableHead>Area Size</TableHead>
-          <TableHead>Year Built</TableHead>
-          <TableHead>Has AC</TableHead>
-          <TableHead>Rent Price</TableHead>
-          <TableHead>Date Available</TableHead>
-          <TableHead>Action</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {flats.map(
-          (flat: {
-            id: string;
-            city: string;
-            streetname: string;
-            streetnumber: number;
-            areasize: number;
-            yearbuilt: number;
-            hasac: boolean;
-            rentprice: number;
-            dateavailable: string;
-          }) => (
-            <TableRow key={flat.id}>
-              <TableCell>{<Link to={`/flat/${flat.id}`}>view</Link>}</TableCell>
-              <TableCell>{flat.city}</TableCell>
-              <TableCell>{flat.streetname}</TableCell>
-              <TableCell>{flat.streetnumber}</TableCell>
-              <TableCell>{flat.areasize}</TableCell>
-              <TableCell>{flat.yearbuilt}</TableCell>
-              <TableCell>{flat.hasac ? "Yes" : "No"}</TableCell>
-              <TableCell>{flat.rentprice}</TableCell>
-              <TableCell>{flat.dateavailable}</TableCell>
-              <TableCell>
-                {/* <Button onClick={() => handleFavorite(flat.id)}>Add Favorite</Button> */}
-                {/* <Button onClick={() => toggleFavorite(flat.id)}>
-                  {favorites.includes(flat.id) ? "Remove Favorite" : "Add Favorite"}
-                </Button>
-              </TableCell>
-            </TableRow>
-          )
-        )}
-      </TableBody>
-    </Table> */} 
-    <FlatTable flats={flats} favorites={favorites} onToggleFavorite={toggleFavorite} />
+      <FlatTable flats={flats} favorites={favorites} onToggleFavorite={toggleFavorite} />
     </>
   );
 };

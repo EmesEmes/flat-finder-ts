@@ -15,25 +15,28 @@ export class MessagesServices {
     return { success: true, comments: data };
   }
 
-  async createComment({ flatId, userId, comment }: { flatId: string; userId: string; comment: string }) {
-    const { data, error } = await supabase.from("comments").insert([
+  async createComment({ flatId, userId, comment, username }: { flatId: string; userId: string; username:string; comment: string }) {
+    const { data, error } = await supabase
+    .from("comments")
+    .insert([
       {
         flatid: flatId,
         authorid: userId,
         comment: comment,
-        response: "",
+        username: username,
       },
-    ]);
+    ])
+    .select();
     if (error) {
       return { success: false, error: error.message };
     }
-    return { success: true, comment: data };
+    return { success: true, data: data };
   }
 
   async updateResponse({ commentId, response }: { commentId: string; response: string }) {
     const { data, error } = await supabase
       .from("comments")
-      .update({ response: response })
+      .update({ response: response, responsetime: new Date()})
       .eq("id", commentId);
     if (error) {
       return { success: false, error: error.message };
@@ -41,3 +44,4 @@ export class MessagesServices {
     return { success: true, comment: data };
   }
 }
+

@@ -37,6 +37,8 @@ const FlatForm = ({ onSubmit, initialData,disableImageUpload }: FlatFormProps) =
       areasize: form.current.areasize.value,
       yearbuilt: form.current.yearbuilt.value,
       hasac: form.current.hasac.checked,
+      lat: form.current.lat.value,
+      lng: form.current.lng.value,
       rentprice: form.current.rentprice.value,
       dateavailable: form.current.dateavailable.value,
       userid: userProfile.id,
@@ -128,6 +130,30 @@ const FlatForm = ({ onSubmit, initialData,disableImageUpload }: FlatFormProps) =
         />
       </LabelInputContainer>
       <div className="bg-gradient-to-r from-transparent via-neutral-300 dark:via-neutral-700 to-transparent my-8 h-[1px] w-full" />
+      <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2 mb-4">
+        <LabelInputContainer>
+          <Label htmlFor="lat">Latitude</Label>
+          <Input
+            id="lat"
+            placeholder="-0.13656401685736502"
+            type="string"
+            name="lat"
+            defaultValue={initialData?.lat}
+            required
+          />
+        </LabelInputContainer>
+        <LabelInputContainer>
+          <Label htmlFor="lng">Longitude</Label>
+          <Input
+            id="lng"
+            placeholder="-78.46626533735454"
+            type="string"
+            name="lng"
+            defaultValue={initialData?.lng}
+            required
+          />
+        </LabelInputContainer>
+      </div>
       <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2 mb-4">
         <LabelInputContainer>
           <Label htmlFor="rentprice">Rent Price</Label>

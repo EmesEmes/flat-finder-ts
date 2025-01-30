@@ -28,6 +28,8 @@ import {
   IconEraser,
   IconTable,
   IconLayoutDashboard,
+  IconSortAscending,
+  IconSortDescending,
 } from "@tabler/icons-react";
 
 import { Button } from "@/components/ui/button";
@@ -66,8 +68,12 @@ const FlatTable: React.FC<FlatTableProps> = ({
 }) => {
   const [search, setSearch] = useState(flats);
   const [view, setView] = useState<"table" | "cards">("table");
+  const [sortCriteria, setSortCriteria] = useState<"price" | "city" | "area" | null>(null);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+
   const inputCity = useRef<HTMLInputElement>(null);
   const form = useRef<HTMLFormElement>(null);
+  const formArea = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
     setSearch(flats);
@@ -117,15 +123,51 @@ const FlatTable: React.FC<FlatTableProps> = ({
     setSearch(filtered);
   };
 
+  const handleFilterArea = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const min = parseInt(formArea.current?.elements[0].value) || 0;
+    const max = parseInt(formArea.current?.elements[1].value) || Infinity;
+    const filtered = search.filter(
+      (flat) => flat.areasize >= min && flat.areasize <= max
+    );
+    setSearch(filtered);
+  };
+
   const handleClean = () => {
     setSearch(flats);
     form.current?.reset();
-    inputCity.current?.focus();
+    formArea.current?.reset();
+  };
+
+  const handleSort = (criteria: "price" | "city" | "area") => {
+    const direction =
+      sortCriteria === criteria && sortDirection === "asc" ? "desc" : "asc";
+    setSortCriteria(criteria);
+    setSortDirection(direction);
+
+    const sorted = [...search].sort((a, b) => {
+      if (criteria === "price") {
+        return direction === "asc"
+          ? a.rentprice - b.rentprice
+          : b.rentprice - a.rentprice;
+      } else if (criteria === "city") {
+        return direction === "asc"
+          ? a.city.localeCompare(b.city)
+          : b.city.localeCompare(a.city);
+      } else if (criteria === "area") {
+        return direction === "asc"
+          ? a.areasize - b.areasize
+          : b.areasize - a.areasize;
+      }
+      return 0;
+    });
+
+    setSearch(sorted);
   };
 
   return (
     <main className="mt-10 container mx-auto">
-      <div className="flex justify-between">
+      <div className="flex items-end justify-between">
         <Input
           type="text"
           placeholder="City"
@@ -135,13 +177,38 @@ const FlatTable: React.FC<FlatTableProps> = ({
         />
         <form
           onSubmit={(e) => handleFilterPrice(e)}
-          className="flex items-center gap-4"
+          className="flex flex-col items-center gap-4"
           ref={form}
         >
-          <Input type="number" placeholder="Min" className="w-20" />
-          -
-          <Input type="number" placeholder="Max" className="w-20" />
-          <div className="flex gap-2">
+          <p>
+            Filter by <span className="text-indigo-700">price</span>
+          </p>
+          <div className="flex items-center gap-3">
+            <Input type="number" placeholder="Min" className="w-20" />
+            -
+            <Input type="number" placeholder="Max" className="w-20" />
+            <div className="flex gap-2">
+              <Button type="submit">
+                Filter{" "}
+                <span>
+                  <IconAdjustmentsAlt />
+                </span>
+              </Button>
+            </div>
+          </div>
+        </form>
+        <form
+          onSubmit={handleFilterArea}
+          className="flex flex-col items-center gap-4"
+          ref={formArea}
+        >
+          <p>
+            Filter by <span className="text-indigo-700">Area</span>
+          </p>
+          <div className="flex gap-3 items-center">
+            <Input type="number" placeholder="Min Area" className="w-20" />
+            -
+            <Input type="number" placeholder="Max Area" className="w-20" />
             <Button type="submit">
               Filter{" "}
               <span>
@@ -157,6 +224,7 @@ const FlatTable: React.FC<FlatTableProps> = ({
           </span>
         </Button>
       </div>
+
       <Button
         onClick={() => setView(view === "table" ? "cards" : "table")}
         className="mt-10"
@@ -182,14 +250,31 @@ const FlatTable: React.FC<FlatTableProps> = ({
           <TableCaption>List of Flats</TableCaption>
           <TableHeader>
             <TableRow>
-              <TableHead><IconEye/></TableHead>
-              <TableHead>City</TableHead>
+              <TableHead>
+                <IconEye />
+              </TableHead>
+              <TableHead className="flex items-center gap-2">
+                City{" "}
+                <Button onClick={() => handleSort("city")} className="size-2">
+                  <IconSortDescending />
+                </Button>
+              </TableHead>
               <TableHead>Street Name</TableHead>
               <TableHead>Street Number</TableHead>
-              <TableHead>Area Size</TableHead>
+              <TableHead className="flex items-center gap-2">
+                Area Size{" "}
+                <Button onClick={() => handleSort("area")} className="size-2">
+                  <IconSortDescending />
+                </Button>
+              </TableHead>
               <TableHead>Year Built</TableHead>
               <TableHead>Has AC</TableHead>
-              <TableHead>Rent Price</TableHead>
+              <TableHead className="flex items-center gap-2">
+                Rent Price{" "}
+                <Button onClick={() => handleSort("price")} className="size-2">
+                  <IconSortDescending />
+                </Button>
+              </TableHead>
               <TableHead>Date Available</TableHead>
               {onToggleFavorite && <TableHead>Favorite</TableHead>}
               {onDelete && <TableHead>Delete</TableHead>}
@@ -210,7 +295,12 @@ const FlatTable: React.FC<FlatTableProps> = ({
               search.map((flat) => (
                 <TableRow key={flat.id}>
                   <TableCell>
-                    <Link to={`/flat/${flat.id}`} className="text-blue-500 underline">View</Link>
+                    <Link
+                      to={`/flat/${flat.id}`}
+                      className="text-blue-500 underline"
+                    >
+                      View
+                    </Link>
                   </TableCell>
                   <TableCell>{flat.city}</TableCell>
                   <TableCell>{flat.streetname}</TableCell>
@@ -227,20 +317,20 @@ const FlatTable: React.FC<FlatTableProps> = ({
                         className="w-full"
                       >
                         {favorites.includes(flat.id) ? (
-                        <span className="flex  items-center gap-4">
-                          Remove Favorite
-                          <span>
-                            <IconTrash />
+                          <span className="flex  items-center gap-4">
+                            Remove Favorite
+                            <span>
+                              <IconTrash />
+                            </span>
                           </span>
-                        </span>
-                      ) : (
-                        <span className="flex items-center gap-4">
-                          Add Favorite
-                          <span>
-                            <IconPlus />
+                        ) : (
+                          <span className="flex items-center gap-4">
+                            Add Favorite
+                            <span>
+                              <IconPlus />
+                            </span>
                           </span>
-                        </span>
-                      )}
+                        )}
                       </Button>
                     </TableCell>
                   )}
@@ -252,24 +342,24 @@ const FlatTable: React.FC<FlatTableProps> = ({
                       >
                         Delete
                         <span>
-                        <IconTrash className=" dark:text-black" />
-                      </span>
+                          <IconTrash className=" dark:text-black" />
+                        </span>
                       </Button>
                     </TableCell>
                   )}
                   {onEdit && (
                     <TableCell>
                       <Button>
-                      <Link
-                        to={`/flat-edit/${flat.id}`}
-                        className="flex items-center gap-4"
-                      >
-                        Edit
-                        <span>
-                          <IconEdit />
-                        </span>
-                      </Link>
-                    </Button>
+                        <Link
+                          to={`/flat-edit/${flat.id}`}
+                          className="flex items-center gap-4"
+                        >
+                          Edit
+                          <span>
+                            <IconEdit />
+                          </span>
+                        </Link>
+                      </Button>
                     </TableCell>
                   )}
                 </TableRow>
@@ -278,9 +368,22 @@ const FlatTable: React.FC<FlatTableProps> = ({
           </TableBody>
         </Table>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 ">
+        <div>
+          <div className="flex gap-4 mt-10 mb-6">
+        <Button onClick={() => handleSort("city")}>
+          Sort by City <IconSortDescending/>
+        </Button>
+        <Button onClick={() => handleSort("price")}>
+          Sort by Price <IconSortDescending/>
+        </Button>
+        <Button onClick={() => handleSort("area")}>
+          Sort by Area <IconSortDescending/>
+        </Button>
+      </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 ">
+          
           {search.map((flat) => (
-            <Card className="w-[380px]">
+            <Card className="w-[380px]" key={flat.id}>
               <CardHeader>
                 <div>
                   <img
@@ -405,6 +508,7 @@ const FlatTable: React.FC<FlatTableProps> = ({
               </CardFooter>
             </Card>
           ))}
+        </div>
         </div>
       )}
     </main>

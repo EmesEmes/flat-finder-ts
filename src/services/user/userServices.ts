@@ -40,7 +40,6 @@ export class UserService {
     }
 
     try {
-      // Crear usuario en Supabase Auth
       const { data: user, error: authError } = await supabase.auth.signUp({
         email: newUser.email,
         password: newUser.password,
@@ -76,12 +75,59 @@ export class UserService {
   }
 
   async getUserById(id: string) {
-    const { data, error } = await supabase.from("profiles").select().eq("id", id);
+    const { data, error } = await supabase
+      .from("profiles")
+      .select()
+      .eq("id", id);
 
     if (error) {
       return { success: false, error: error.message };
     } else {
       return { success: true, user: data[0] };
+    }
+  }
+  
+  async deleteUser(userId: string) {
+    const { error } = await supabase.from("profiles").delete().eq("id", userId);
+    if (error) {
+      return { success: false, error: error.message };
+    }
+    return { success: true };
+  }
+
+  async getAllUsers() {
+    const { data, error } = await supabase.from("profiles").select();
+
+    if (error) {
+      return { success: false, error: error.message };
+    } else {
+      return { success: true, users: data };
+    }
+  }
+
+  async updateUser(
+    id: string,
+    firstname: string,
+    lastname: string,
+    phone: string,
+    birthdate: string,
+    isadmin?: boolean
+  ) {
+    const { data, error } = await supabase
+      .from("profiles")
+      .update({
+        firstname,
+        lastname,
+        phone,
+        birthdate,
+        isadmin,
+      })
+      .eq("id", id);
+
+    if (error) {
+      return { success: false, error: error.message };
+    } else {
+      return { success: true, data: data };
     }
   }
 }

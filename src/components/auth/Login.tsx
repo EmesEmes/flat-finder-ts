@@ -1,16 +1,16 @@
 import { useRef, useState } from "react"
-import { loginService } from "@/services/login"
 import { Link, useNavigate } from 'react-router';
 import { UserService } from "@/services/user/userServices"
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useUser } from "@/context/UserContext";
+import { Button } from "../ui/button";
 
 
 
 const Login = () => {
-  const { userProfile, setCurrentUser, setUserProfile, isLoading, fetchAndSetUser } = useUser();
+  const { userProfile, fetchAndSetUser } = useUser();
   const [error, seterror] = useState(null)
   const formRef = useRef<HTMLElement | null>(null)
   const navigate = useNavigate()
@@ -25,11 +25,20 @@ const Login = () => {
     const userService = new UserService()
     const userLoged = await userService.login(email, password)
     if (!userLoged.success) {
+      formRef.current.password.value = ''
       seterror(userLoged.error)
     } else {
       await fetchAndSetUser()
       navigate('/')
     }
+  }
+  if(userProfile) {
+    return (
+      <div className="h-screen flex flex-col items-center justify-center">
+        <p className="text-3xl">you are already logged in</p>
+        <Button onClick={() => navigate('/')} className="mt-10">Go to home</Button>
+      </div>
+    )
   }
   return (
     <main className="h-screen flex flex-col items-center justify-center">

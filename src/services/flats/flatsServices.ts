@@ -11,6 +11,8 @@ export class FlatsServices {
     areasize: number;
     yearbuilt: number;
     hasac: string;
+    lat: number;
+    lng: number;
     rentprice: number;
     dateavailable: string;
     userid: string;
@@ -37,6 +39,8 @@ export class FlatsServices {
           areasize: newFlat.areasize,
           yearbuilt: newFlat.yearbuilt,
           hasac: newFlat.hasac,
+          lat: newFlat.lat,
+          lng: newFlat.lng,
           rentprice: newFlat.rentprice,
           dateavailable: newFlat.dateavailable,
           userid: newFlat.userid,

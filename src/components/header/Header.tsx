@@ -13,70 +13,21 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import {
-  ArrowPathIcon,
-  Bars3Icon,
-  ChartPieIcon,
-  CursorArrowRaysIcon,
-  FingerPrintIcon,
-  SquaresPlusIcon,
-  XMarkIcon,
-} from "@heroicons/react/24/outline";
-import {
-  ChevronDownIcon,
-  PhoneIcon,
-  PlayCircleIcon,
-} from "@heroicons/react/20/solid";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-
+import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
+import { ChevronDownIcon } from "@heroicons/react/20/solid";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ModeToggle } from "@/components/mode-ttogle";
-import { Link } from "react-router";
+import { Link, useLocation } from "react-router"; // Importa useLocation
 import { useUser } from "@/context/UserContext";
 import { Button } from "../ui/button";
 import { useLogout } from "@/services/logout";
-
-const products = [
-  {
-    name: "Analytics",
-    description: "Get a better understanding of your traffic",
-    href: "#",
-    icon: ChartPieIcon,
-  },
-  {
-    name: "Engagement",
-    description: "Speak directly to your customers",
-    href: "#",
-    icon: CursorArrowRaysIcon,
-  },
-  {
-    name: "Security",
-    description: "Your customers’ data will be safe and secure",
-    href: "#",
-    icon: FingerPrintIcon,
-  },
-  {
-    name: "Integrations",
-    description: "Connect with third-party tools",
-    href: "#",
-    icon: SquaresPlusIcon,
-  },
-  {
-    name: "Automations",
-    description: "Build strategic funnels that will convert",
-    href: "#",
-    icon: ArrowPathIcon,
-  },
-];
-const callsToAction = [
-  { name: "Watch demo", href: "#", icon: PlayCircleIcon },
-  { name: "Contact sales", href: "#", icon: PhoneIcon },
-];
+import { IconHomeFilled } from "@tabler/icons-react";
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  
-  const { userProfile} = useUser();
+  const { userProfile } = useUser();
   const { handleLogout } = useLogout();
+  const location = useLocation();
 
   return (
     <header className="bg-dark-light-primary">
@@ -84,15 +35,16 @@ export default function Header() {
         aria-label="Global"
         className="mx-auto flex max-w-7xl items-center justify-between p-6 lg:px-8"
       >
-        <div className="flex lg:flex-1">
-          <a href="/" className="-m-1.5 p-1.5">
+        <div className="flex items-stretch lg:flex-1">
+          <Link to="/" className="-m-1.5 p-1.5 flex items-center gap-x-2">
             <span className="sr-only">Your Company</span>
-            <img
-              alt=""
-              src="https://tailwindui.com/plus/img/logos/mark.svg?color=indigo&shade=600"
-              className="h-8 w-auto"
-            />
-          </a>
+            <span>
+              <IconHomeFilled className="text-indigo-700 dark:text-white size-10" />
+            </span>
+            <span className="text-lg text-indigo-700 dark:text-white">
+              FlatFinder
+            </span>
+          </Link>
         </div>
         <div className="flex lg:hidden">
           <button
@@ -105,44 +57,54 @@ export default function Header() {
           </button>
         </div>
         <PopoverGroup className="hidden lg:flex lg:gap-x-12">
-          <Popover className="relative">
-
-            
-          </Popover>
+          <Popover className="relative"></Popover>
 
           <Link
             to="/"
-            className="text-sm/6 font-semibold text-dark-white-primary"
+            className={`text-sm/6 font-semibold ${
+              location.pathname === "/"
+                ? "underline text-indigo-400"
+                : "text-dark-white-primary"
+            }`}
           >
             Home
           </Link>
-          <Link
-            to="/new-flat"
-            className="text-sm/6 font-semibold text-dark-white-primary"
-          >
-            New Flat
-          </Link>
-          {
-            userProfile ? (
-              <Link
-                to="/my-favorites"
-                className="text-sm/6 font-semibold text-dark-white-primary"
-              >
-                My Favorites
-              </Link>
-            ) : null
-          }
-          {
-            userProfile ? (
-              <Link
-                to="/my-flats"
-                className="text-sm/6 font-semibold text-dark-white-primary"
-              >
-                My Flats
-              </Link>
-            ) : null
-          }
-          
+          {userProfile && (
+            <Link
+              to="/new-flat"
+              className={`text-sm/6 font-semibold ${
+                location.pathname === "/new-flat"
+                  ? "underline text-indigo-400"
+                  : "text-dark-white-primary"
+              }`}
+            >
+              New Flat
+            </Link>
+          )}
+          {userProfile && (
+            <Link
+              to="/my-favorites"
+              className={`text-sm/6 font-semibold ${
+                location.pathname === "/my-favorites"
+                  ? "underline text-indigo-400"
+                  : "text-dark-white-primary"
+              }`}
+            >
+              My Favorites
+            </Link>
+          )}
+          {userProfile && (
+            <Link
+              to="/my-flats"
+              className={`text-sm/6 font-semibold ${
+                location.pathname === "/my-flats"
+                  ? "underline text-indigo-400"
+                  : "text-dark-white-primary"
+              }`}
+            >
+              My Flats
+            </Link>
+          )}
         </PopoverGroup>
         <div className="hidden lg:flex lg:flex-1 lg:justify-end lg:space-x-4 lg:items-center">
           <ModeToggle />
@@ -150,44 +112,39 @@ export default function Header() {
             <PopoverUI>
               <PopoverTrigger>
                 <div className="flex items-center gap-x-2">
-                <span>{userProfile.firstname}</span>
-                <Avatar>
-                  <AvatarImage
-                    src={`https://ggdyznkijkikcjuonxzz.supabase.co/storage/v1/object/public/avatars/${userProfile.avatar}`}
-                  />
-                  <AvatarFallback>
-                    {userProfile.firstname}
-                    {userProfile.lastname}
-                  </AvatarFallback>
-                </Avatar>
+                  <span>{userProfile.firstname}</span>
+                  <Avatar>
+                    <AvatarImage
+                      src={`https://ggdyznkijkikcjuonxzz.supabase.co/storage/v1/object/public/avatars/${userProfile.avatar}`}
+                    />
+                    <AvatarFallback>
+                      {userProfile.firstname}
+                      {userProfile.lastname}
+                    </AvatarFallback>
+                  </Avatar>
                 </div>
               </PopoverTrigger>
               <PopoverContent>
                 <div className="flex flex-col gap-y-2">
                   <Button>
-                  <Link
-                    to="/profile"
-                  >
-                    Profile
-                  </Link>
+                    <Link to={`/profile/${userProfile.id}`}>Profile</Link>
                   </Button>
-                  <Button
-                    onClick={handleLogout}
-                  >
-                    Log out
-                  </Button>
+                  {userProfile.isadmin && (
+                    <Button>
+                      <Link to="/admin">Users</Link>
+                    </Button>
+                  )}
+                  <Button onClick={handleLogout}>Log out</Button>
                 </div>
               </PopoverContent>
             </PopoverUI>
           ) : (
-            <>
-              <Link
-                to="/login"
-                className="text-sm/6 font-semibold text-dark-white-primary"
-              >
-                Log in <span aria-hidden="true">&rarr;</span>
-              </Link>
-            </>
+            <Link
+              to="/login"
+              className="text-sm/6 font-semibold text-dark-white-primary"
+            >
+              Log in <span aria-hidden="true">&rarr;</span>
+            </Link>
           )}
         </div>
       </nav>
@@ -227,37 +184,52 @@ export default function Header() {
                       className="size-5 flex-none group-data-[open]:rotate-180"
                     />
                   </DisclosureButton>
-                  <DisclosurePanel className="mt-2 space-y-2">
-                    {[...products, ...callsToAction].map((item) => (
-                      <DisclosureButton
-                        key={item.name}
-                        as="a"
-                        href={item.href}
-                        className="block rounded-lg py-2 pl-6 pr-3 text-sm/7 font-semibold text-dark-white-primary hover:bg-gray-50"
-                      >
-                        {item.name}
-                      </DisclosureButton>
-                    ))}
-                  </DisclosurePanel>
+                  <DisclosurePanel className="mt-2 space-y-2"></DisclosurePanel>
                 </Disclosure>
-                <a
-                  href="#"
-                  className="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-dark-white-primary hover:bg-gray-50"
+                <Link
+                  to="/"
+                  className={`-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold ${
+                    location.pathname === "/"
+                      ? "text-indigo-600"
+                      : "text-dark-white-primary"
+                  } hover:bg-gray-50`}
                 >
-                  Features
-                </a>
-                <a
-                  href="#"
-                  className="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-dark-white-primary hover:bg-gray-50"
+                  Home
+                </Link>
+                <Link
+                  to="/new-flat"
+                  className={`-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold ${
+                    location.pathname === "/new-flat"
+                      ? "text-indigo-600"
+                      : "text-dark-white-primary"
+                  } hover:bg-gray-50`}
                 >
-                  Marketplace
-                </a>
-                <a
-                  href="#"
-                  className="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-dark-white-primary hover:bg-gray-50"
-                >
-                  Company
-                </a>
+                  New Flat
+                </Link>
+                {userProfile && (
+                  <Link
+                    to="/my-favorites"
+                    className={`-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold ${
+                      location.pathname === "/my-favorites"
+                        ? "text-indigo-600"
+                        : "text-dark-white-primary"
+                    } hover:bg-gray-50`}
+                  >
+                    My Favorites
+                  </Link>
+                )}
+                {userProfile && (
+                  <Link
+                    to="/my-flats"
+                    className={`-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold ${
+                      location.pathname === "/my-flats"
+                        ? "text-indigo-600"
+                        : "text-dark-white-primary"
+                    } hover:bg-gray-50`}
+                  >
+                    My Flats
+                  </Link>
+                )}
               </div>
               <div className="py-6">
                 <ModeToggle />

@@ -1,7 +1,7 @@
 import { FlatsServices } from "@/services/flats/flatsServices";
 import { UserService } from "@/services/user/userServices";
 import { useEffect, useRef, useState } from "react";
-import { useParams } from "react-router";
+import { Link, useParams } from "react-router";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Card,
@@ -15,6 +15,21 @@ import { Textarea } from "../ui/textarea";
 import { MessagesServices } from "@/services/messages/messagesServices";
 import { useUser } from "@/context/UserContext";
 import { Button } from "@/components/ui/button";
+import FlatMap from "../map/Map";
+import {
+  IconAirConditioning,
+  IconArrowsMaximize,
+  IconCalendarStats,
+  IconCalendarWeek,
+  IconCash,
+  IconEdit,
+  IconMail,
+  IconMap2,
+  IconMapPin,
+  IconNumber,
+  IconPhone,
+  IconUser,
+} from "@tabler/icons-react";
 
 interface Flat {
   id: string;
@@ -24,6 +39,8 @@ interface Flat {
   streetnumber: string;
   areasize: number;
   hasac: boolean;
+  lat: number;
+  lng: number;
   yearbuilt: number;
   rentprice: number;
   dateavailable: string;
@@ -59,7 +76,7 @@ const FlatView = () => {
   }, [idFlat]);
 
   useEffect(() => {
-    if (!flat || !flat.userid) return; // Evitar fetch innecesario
+    if (!flat || !flat.userid) return;
 
     const fetchOwner = async () => {
       const userService = new UserService();
@@ -73,45 +90,40 @@ const FlatView = () => {
     fetchOwner();
   }, [flat]);
 
-  useEffect(
-    (idFlat: string) => {
-      if (!flat || !flat.userid) return;
-      const fetchComments = async () => {
-        const messagesService = new MessagesServices();
-        const response = await messagesService.getMessagesByFlatId(flat.id);
+  useEffect(() => {
+    if (!idFlat || !flat) return;
 
-        if (response.success) {
-          setComments(response.comments);
-        }
-      };
-      fetchComments();
-    },
-    [flat]
-  );
+    const fetchComments = async () => {
+      const messagesService = new MessagesServices();
+      const response = await messagesService.getMessagesByFlatId(flat.id);
+
+      if (response.success && Array.isArray(response.comments)) {
+        setComments(response.comments);
+      }
+    };
+
+    fetchComments();
+  }, [idFlat, flat]);
 
   const handleComment = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const newComment = form.current?.comment.value;
     if (!newComment) return;
 
-    const submitComment = async () => {
-      const messagesService = new MessagesServices();
-      const response = await messagesService.createComment({
-        flatId: flat.id,
-        userId: userProfile?.id,
-        comment: newComment,
-      });
-
-      if (response.success) {
-        setComments([...comments, response.comment]);
-        console.log("Comment created");
-        form.current?.reset();
-      } else {
-        console.error(response.error);
-      }
-    };
-
-    submitComment();
+    const messagesService = new MessagesServices();
+    const response = await messagesService.createComment({
+      flatId: flat.id,
+      userId: userProfile?.id,
+      comment: newComment,
+      username: `${userProfile?.firstname} ${userProfile?.lastname}`,
+    });
+    if (response.success) {
+      console.log(response);
+      setComments([...comments, response.data[0]]);
+      form.current?.reset();
+    } else {
+      console.error("Error al enviar el comentario:", response.error);
+    }
   };
 
   const handleResponseChange = (
@@ -162,9 +174,10 @@ const FlatView = () => {
       console.error("Error al enviar la respuesta:", error);
     }
   };
+
   console.log(comments);
 
-  if (!flat || !owner || !comments) {
+  if (!flat || !owner || comments === null) {
     return (
       <div className="container mx-auto mt-20">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -183,30 +196,54 @@ const FlatView = () => {
     <>
       <div className="container mx-auto mt-20 ">
         <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
-          <img
-            src={`https://ggdyznkijkikcjuonxzz.supabase.co/storage/v1/object/public/flatsimages/${flat.images}`}
-            alt="flat"
-            className="rounded-3xl"
-          />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+            <img
+              src={`https://ggdyznkijkikcjuonxzz.supabase.co/storage/v1/object/public/flatsimages/${flat.images}`}
+              alt="flat"
+              className="rounded-lg shadow-md"
+            />
+            <div>
+              <FlatMap lat={flat.lat} lng={flat.lng} />
+            </div>
+          </div>
+          {userProfile?.id === flat.userid && (
+            <Button className="mt-4 w-20 bg-indigo-700 shadow-md shadow-gray-700">
+              <Link
+                to={`/flat-edit/${flat.id}`}
+                className="flex items-center gap-4 "
+              >
+                Edit
+                <span>
+                  <IconEdit />
+                </span>
+              </Link>
+            </Button>
+          )}
           <Card className="">
             <CardHeader>
               <CardTitle>Flat Information</CardTitle>
-              <CardDescription>Aqui no se que poner</CardDescription>
+              <CardDescription>
+                This could be the flat of your dreams
+              </CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4">
               <CardDescription>
                 <span className="text-indigo-700 text-2xl">Ubication Info</span>
               </CardDescription>
               <div className="grid grid-cols-3">
-                <div className="mb-4 grid grid-cols-[25px_1fr] items-start pb-4 last:mb-0 last:pb-0">
-                  <span className="flex h-2 w-2 translate-y-1 rounded-full bg-indigo-700" />
+                <div className="mb-4 grid grid-cols-[25px_1fr] items-center pb-4 last:mb-0 last:pb-0 gap-4">
+                  <span>
+                    <IconMap2 className="text-indigo-700" stroke={2} />
+                  </span>
                   <div className="space-y-1">
                     <p className="text-sm font-medium leading-none">City</p>
                     <p className="text-sm text-muted-foreground">{flat.city}</p>
                   </div>
                 </div>
-                <div className="mb-4 grid grid-cols-[25px_1fr] items-start pb-4 last:mb-0 last:pb-0">
-                  <span className="flex h-2 w-2 translate-y-1 rounded-full bg-indigo-700" />
+                <div className="mb-4 grid grid-cols-[25px_1fr] items-center pb-4 last:mb-0 last:pb-0 gap-4">
+                  <span>
+                    <IconMapPin className="text-indigo-700" stroke={2} />
+                  </span>
                   <div className="space-y-1">
                     <p className="text-sm font-medium leading-none">
                       Street Name
@@ -216,11 +253,13 @@ const FlatView = () => {
                     </p>
                   </div>
                 </div>
-                <div className="mb-4 grid grid-cols-[25px_1fr] items-start pb-4 last:mb-0 last:pb-0">
-                  <span className="flex h-2 w-2 translate-y-1 rounded-full bg-indigo-700" />
+                <div className="mb-4 grid grid-cols-[25px_1fr] items-center pb-4 last:mb-0 last:pb-0 gap-4">
+                  <span>
+                    <IconNumber className="text-indigo-700" stroke={2} />
+                  </span>
                   <div className="space-y-1">
                     <p className="text-sm font-medium leading-none">
-                      Street NUmber
+                      Street Number
                     </p>
                     <p className="text-sm text-muted-foreground">
                       {flat.streetnumber}
@@ -232,8 +271,13 @@ const FlatView = () => {
                 <span className="text-indigo-700 text-2xl">Flat Info</span>
               </CardDescription>
               <div className="grid grid-cols-3">
-                <div className="mb-4 grid grid-cols-[25px_1fr] items-start pb-4 last:mb-0 last:pb-0">
-                  <span className="flex h-2 w-2 translate-y-1 rounded-full bg-indigo-700" />
+                <div className="mb-4 grid grid-cols-[25px_1fr] items-center pb-4 last:mb-0 last:pb-0 gap-4">
+                  <span>
+                    <IconArrowsMaximize
+                      className="text-indigo-700"
+                      stroke={2}
+                    />
+                  </span>
                   <div className="space-y-1">
                     <p className="text-sm font-medium leading-none">
                       Area Size
@@ -243,8 +287,13 @@ const FlatView = () => {
                     </p>
                   </div>
                 </div>
-                <div className="mb-4 grid grid-cols-[25px_1fr] items-start pb-4 last:mb-0 last:pb-0">
-                  <span className="flex h-2 w-2 translate-y-1 rounded-full bg-indigo-700" />
+                <div className="mb-4 grid grid-cols-[25px_1fr] items-center pb-4 last:mb-0 last:pb-0 gap-4">
+                  <span>
+                    <IconAirConditioning
+                      className="text-indigo-700"
+                      stroke={2}
+                    />
+                  </span>
                   <div className="space-y-1">
                     <p className="text-sm font-medium leading-none">Has AC?</p>
                     <p className="text-sm text-muted-foreground">
@@ -252,8 +301,10 @@ const FlatView = () => {
                     </p>
                   </div>
                 </div>
-                <div className="mb-4 grid grid-cols-[25px_1fr] items-start pb-4 last:mb-0 last:pb-0">
-                  <span className="flex h-2 w-2 translate-y-1 rounded-full bg-indigo-700" />
+                <div className="mb-4 grid grid-cols-[25px_1fr] items-center pb-4 last:mb-0 last:pb-0 gap-4">
+                  <span>
+                    <IconCalendarStats className="text-indigo-700" stroke={2} />
+                  </span>
                   <div className="space-y-1">
                     <p className="text-sm font-medium leading-none">
                       Year Built
@@ -265,8 +316,10 @@ const FlatView = () => {
                 </div>
               </div>
               <div className="grid grid-cols-3">
-                <div className="mb-4 grid grid-cols-[25px_1fr] items-start pb-4 last:mb-0 last:pb-0">
-                  <span className="flex h-2 w-2 translate-y-1 rounded-full bg-indigo-700" />
+                <div className="mb-4 grid grid-cols-[25px_1fr] items-center pb-4 last:mb-0 last:pb-0 gap-4">
+                  <span>
+                    <IconCash className="text-indigo-700" stroke={2} />
+                  </span>
                   <div className="space-y-1">
                     <p className="text-sm font-medium leading-none">
                       Rent Price
@@ -276,8 +329,10 @@ const FlatView = () => {
                     </p>
                   </div>
                 </div>
-                <div className="mb-4 grid grid-cols-[25px_1fr] items-start pb-4 last:mb-0 last:pb-0">
-                  <span className="flex h-2 w-2 translate-y-1 rounded-full bg-indigo-700" />
+                <div className="mb-4 grid grid-cols-[25px_1fr] items-center pb-4 last:mb-0 last:pb-0 gap-4">
+                  <span>
+                    <IconCalendarWeek className="text-indigo-700" stroke={2} />
+                  </span>
                   <div className="space-y-1">
                     <p className="text-sm font-medium leading-none">
                       Date Available
@@ -293,8 +348,10 @@ const FlatView = () => {
                   <span className="text-indigo-700 text-2xl">Owner Info</span>
                 </CardDescription>
                 <div>
-                  <div className="mb-4 grid grid-cols-[25px_1fr] items-start pb-4 last:mb-0 last:pb-0">
-                    <span className="flex h-2 w-2 translate-y-1 rounded-full bg-indigo-700" />
+                  <div className="mb-4 grid grid-cols-[25px_1fr] items-center pb-4 last:mb-0 last:pb-0 gap-4">
+                    <span>
+                      <IconUser className="text-indigo-700" stroke={2} />
+                    </span>
                     <div className="space-y-1">
                       <p className="text-sm font-medium leading-none">
                         Owner Name
@@ -305,9 +362,11 @@ const FlatView = () => {
                     </div>
                   </div>
                 </div>
-                <div className="grid grid-cols-3">
-                  <div className="mb-4 grid grid-cols-[25px_1fr] items-start pb-4 last:mb-0 last:pb-0">
-                    <span className="flex h-2 w-2 translate-y-1 rounded-full bg-indigo-700" />
+                <div className="grid grid-cols-3 mt-10">
+                  <div className="mb-4 grid grid-cols-[25px_1fr] items-center pb-4 last:mb-0 last:pb-0 gap-4">
+                    <span>
+                      <IconPhone className="text-indigo-700" stroke={2} />
+                    </span>
                     <div className="space-y-1">
                       <p className="text-sm font-medium leading-none">Phone</p>
                       <p className="text-sm text-muted-foreground">
@@ -315,8 +374,10 @@ const FlatView = () => {
                       </p>
                     </div>
                   </div>
-                  <div className="mb-4 grid grid-cols-[25px_1fr] items-start pb-4 last:mb-0 last:pb-0">
-                    <span className="flex h-2 w-2 translate-y-1 rounded-full bg-indigo-700" />
+                  <div className="mb-4 grid grid-cols-[25px_1fr] items-center pb-4 last:mb-0 last:pb-0 gap-4">
+                    <span>
+                      <IconMail className="text-indigo-700" stroke={2} />
+                    </span>
                     <div className="space-y-1">
                       <p className="text-sm font-medium leading-none">Email</p>
                       <p className="text-sm text-muted-foreground">
@@ -331,50 +392,67 @@ const FlatView = () => {
           </Card>
         </div>
       </div>
-
-      <form
-        onSubmit={handleComment}
-        className="container mx-auto mt-20"
-        ref={form}
-      >
-        <Textarea name="comment" required />
-        <Button type="submit">Send</Button>
-      </form>
+      {userProfile?.id !== flat.userid && (
+        <form
+          onSubmit={handleComment}
+          className="container mx-auto mt-20"
+          ref={form}
+        >
+          <Textarea name="comment" className="w-96" required />
+          <Button type="submit" className="mt-6">
+            Send
+          </Button>
+        </form>
+      )}
 
       {comments.length > 0 ? (
-        <>
-          <div className="container mx-auto mt-20">
-            <h2 className="text-2xl font-bold mb-4">Comments</h2>
-            {comments.map((comment) => (
-              <div key={comment.id} className="rounded-lg p-4 shadow-md mb-4">
-                <div className="flex justify-between items-center flex-col">
-                  <div>
-                    <p className="font-bold">{comment.authorid}</p>
-                    <p>{comment.comment}</p>
-                  </div>
-                  <div className="text-gray-400">
-                    {comment.response ? comment.response : "No response yet"}
-                  </div>
+        <div className="container mx-auto my-10">
+          <h2 className="text-2xl font-bold mb-4">Comments</h2>
+          {comments.map((comment) => (
+            <div
+              key={comment.id}
+              className="rounded-lg p-4 shadow-md mb-4 container mx-auto"
+            >
+              <div className="flex justify-between flex-col">
+                <div className="text-left">
+                  <p className="font-bold">{comment.username}</p>
+                  <p>{comment.comment}</p>
+
+                  <span className="text-sm text-gray-400">
+                    {comment.created_at}
+                  </span>
                 </div>
-                {userProfile?.id === flat.userid && (
-                  <form onSubmit={(e) => handleResponse(e, comment.id)}>
-                    <span>Respond</span>
-                    <Textarea
-                      name="responseText"
-                      value={responses[comment.id] || ""}
-                      onChange={(e) => handleResponseChange(e, comment.id)}
-                      required
-                    />
-                    <Button type="submit">Send</Button>
-                  </form>
-                )}
+                <div className="text-right">
+                  {comment.response ? (
+                    <div>
+                      <p>{comment.response}</p>
+                      <span className="text-sm text-gray-400">
+                        {comment.responsetime}
+                      </span>
+                    </div>
+                  ) : (
+                    "No response yet"
+                  )}
+                </div>
               </div>
-            ))}
-          </div>
-        </>
+              {userProfile?.id === flat.userid && (
+                <form onSubmit={(e) => handleResponse(e, comment.id)}>
+                  <span>Respond</span>
+                  <Textarea
+                    name="responseText"
+                    value={responses[comment.id] || ""}
+                    onChange={(e) => handleResponseChange(e, comment.id)}
+                    required
+                  />
+                  <Button type="submit">Send</Button>
+                </form>
+              )}
+            </div>
+          ))}
+        </div>
       ) : (
-        <div className="container mx-auto mt-20">
-          <p>No comments yet</p>
+        <div className="container mx-auto my-10">
+          <p className="text-center">No comments yet</p>
         </div>
       )}
     </>
