@@ -19,6 +19,7 @@ import FlatMap from "../map/Map";
 import {
   IconAirConditioning,
   IconArrowsMaximize,
+  IconBrandWhatsapp,
   IconCalendarStats,
   IconCalendarWeek,
   IconCash,
@@ -174,6 +175,13 @@ const FlatView = () => {
       console.error("Error al enviar la respuesta:", error);
     }
   };
+
+  const transformPhone = (phone) => {
+    
+      const transformedPhone = "593" + phone.slice(1);
+      return transformedPhone
+    
+  }
 
   console.log(comments);
 
@@ -362,6 +370,7 @@ const FlatView = () => {
                     </div>
                   </div>
                 </div>
+                
                 <div className="grid grid-cols-3 mt-10">
                   <div className="mb-4 grid grid-cols-[25px_1fr] items-center pb-4 last:mb-0 last:pb-0 gap-4">
                     <span>
@@ -383,6 +392,16 @@ const FlatView = () => {
                       <p className="text-sm text-muted-foreground">
                         {owner.email}
                       </p>
+                    </div>
+                  </div>
+                  <div className="mb-4 grid grid-cols-[25px_1fr] items-center pb-4 last:mb-0 last:pb-0 gap-4">
+                    <span>
+                      <IconBrandWhatsapp className="text-indigo-700" stroke={2} />
+                    </span>
+                    <div className="space-y-1">
+                      <Link to={`https://wa.me/${transformPhone(owner.phone)}?text=¡Hola!%20Estoy%20visitando%20su%20sitio%20web%20y%20deseo%20más%20información"`} target="_blanks">
+                        <Button>Chat Owner</Button>
+                      </Link>
                     </div>
                   </div>
                 </div>
